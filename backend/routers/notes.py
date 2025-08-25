@@ -13,6 +13,13 @@ async def list_notes(db_conn: asyncpg.Connection = Depends(get_db_conn)):
         return await notes_controller.list_notes(db_conn)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/{note_id}")
+async def get_note(note_id: int, db_conn: asyncpg.Connection = Depends(get_db_conn)):
+    try:
+        return await notes_controller.get_note(db_conn, note_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
             
 @router.post("/")
 async def create_note(note: Note, db_conn: asyncpg.Connection = Depends(get_db_conn)):
