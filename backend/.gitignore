@@ -6,3 +6,4 @@ backend/db/__pycache__/
 backend/models/__pycache__/
 **/__pycache__/
 **/*.py[cod]
+*.apps.googleusercontent.com.json
