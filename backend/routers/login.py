@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from db.database import get_db_conn
 from models.note import Note
 import controllers.notes as notes_controller
+import controllers.users as user_controller
 import asyncpg
 from fastapi.security import OAuth2PasswordBearer
 import requests
@@ -28,7 +29,7 @@ async def login_google():
     }
 
 @router.get("/auth/google")
-async def auth_google(code: str):
+async def auth_google(code: str, db_conn: asyncpg.Connection = Depends(get_db_conn)):
     token_url = "https://accounts.google.com/o/oauth2/token"
     data = {
         "code": code,
@@ -59,6 +60,12 @@ async def auth_google(code: str):
     if not email:
         raise HTTPException(status_code=400, detail="Email not found in Google account")
     
+    user = await user_controller.get_user_from_email(db_conn, email)
+    if user:
+        await user_controller.edit_user(db_conn, id=user["id"], user={"name": user_info["name"], "photo_url": user_info["picture"]})
+    else:
+        await user_controller.create_user(db_conn, user={"name": user_info["name"], "email": user_info["email"], "photo_url": user_info["picture"], "google_id": user_info["id"]})
+        
     token_payload = {"sub": email}
     jwt_token = create_access_token(data=token_payload)
     return {"access_token": jwt_token, "token_type": "bearer"}
